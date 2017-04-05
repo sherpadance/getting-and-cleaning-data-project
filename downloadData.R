@@ -3,8 +3,17 @@ downloadData <- function() {
     # was previously downloaded. If so, it asks the user whether to refresh the data.
     # If not, the datafile is downloaded and extracted to a `Data` subdirectory, which
     # is created if it does not exist.
+    #
+    # After completion of this function, the working directory contains a 'Data'
+    # directory, which contains a Dataset.zip file. The contents of this file
+    # are extracted into Data/UCI HAR Dataset.
+    # TThe function returns the date the dataset was downloaded; or NULL if no
+    # data was downloaded
     
     # -------------------------------------------------------------------------
+    
+    # Initialize return value
+    downloadDate <- NULL
     
     # check if datafile currently exists
     #   if not: download
@@ -21,7 +30,6 @@ downloadData <- function() {
         replaceFile <- "yes"
     } else {
         while (replaceFile != "yes" & replaceFile != "no") {
-            print(replaceFile)
             replaceFile <- tolower(readline("Existing datafile found. Would you like to re-download the data file? (yes/no) "))
         }
     }
@@ -33,7 +41,10 @@ downloadData <- function() {
         
         print("Unzipping file contents...")
         unzip(dataFile, overwrite=TRUE, exdir="Data")
+        
+        downloadDate <- Sys.time()
     }
     
+    return(downloadDate)
 }
 
