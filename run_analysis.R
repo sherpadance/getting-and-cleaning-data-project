@@ -66,12 +66,12 @@ colSelection_std[col_std] <- "numeric"
 colSelection_std[!col_std] <- "NULL"
 
 # read test data - dataset
-testData_mean <- read.table(file.path(testDir, "X_test.txt"), col.names = colSelection_mean)
-testData_std <- read.table(file.path(testDir, "X_test.txt"), col.names = colSelection_std)
+testData_mean <- read.table(file.path(testDir, "X_test.txt"), colClasses = colSelection_mean)
+testData_std <- read.table(file.path(testDir, "X_test.txt"), colClasses = colSelection_std)
 
 # read training data - dataset
-trainData_mean <- read.table(file.path(trainDir, "X_train.txt"), col.names = colSelection_mean)
-trainData_std <- read.table(file.path(trainDir, "X_train.txt"), col.names = colSelection_std)
+trainData_mean <- read.table(file.path(trainDir, "X_train.txt"), colClasses = colSelection_mean)
+trainData_std <- read.table(file.path(trainDir, "X_train.txt"), colClasses = colSelection_std)
 
 ## Do some housekeeping on the imported data
 
