@@ -34,17 +34,44 @@ features <- read.table(file.path(dataDir, "features.txt"), sep=" ")
 
 # read test data - subjects
 testSubjects <- read.table(file.path(testDir, "subject_test.txt"))
-# read test data - dataset
-testData <- read.table(file.path(testDir, "X_test.txt"))
+# read training data - subjects
+trainSubjects <- read.table(file.path(trainDir, "subject_train.txt"))
+
 # read test labels
 testLabels <- read.table(file.path(testDir, "y_test.txt"))
 
-# read training data - subjects
-trainSubjects <- read.table(file.path(trainDir, "subject_train.txt"))
-# read training data - dataset
-trainData <- read.table(file.path(trainDir, "X_train.txt"))
 # read training labels
 trainLabels <- read.table(file.path(trainDir, "y_train.txt"))
+
+## For data - only read mean/std values
+
+# find column numbers with mean/std values
+colNumbers_mean <- which(grepl("mean\\(\\)", features$V2))
+colNumbers_std <- which(grepl("std\\(\\)", features$V2))
+
+# get variable names, remove mean()/std()
+colNames_mean <- gsub("-mean\\(\\)-*", "", features[colNumbers_mean,2])
+colNames_std <- gsub("-std\\(\\)-*", "", features[colNumbers_std, 2])
+# these should be the same - if not: throw error!
+if(!identical(colNames_mean, colNames_std)) {stop("Feature order mean/std does not match.")}
+
+# Prep col.names to select columns to read
+col_mean <- grepl("mean\\(\\)", features$V2)
+col_std  <- grepl("std\\(\\)", features$V2)
+colSelection_mean <- col_mean
+colSelection_std <- col_std
+colSelection_mean[col_mean] <- "numeric"
+colSelection_mean[!col_mean] <- "NULL"
+colSelection_std[col_std] <- "numeric"
+colSelection_std[!col_std] <- "NULL"
+
+# read test data - dataset
+testData_mean <- read.table(file.path(testDir, "X_test.txt"), col.names = colSelection_mean)
+testData_std <- read.table(file.path(testDir, "X_test.txt"), col.names = colSelection_std)
+
+# read training data - dataset
+trainData_mean <- read.table(file.path(trainDir, "X_train.txt"), col.names = colSelection_mean)
+trainData_std <- read.table(file.path(trainDir, "X_train.txt"), col.names = colSelection_std)
 
 ## Do some housekeeping on the imported data
 
