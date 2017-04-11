@@ -45,3 +45,9 @@ The script performs the following actions:
 The `tidy_data.txt`dataset is described in the `codebook.md`codebook.
 
 The `tidy_data.txt`file in this repository was created by sourcing the `run_analysis.R` script using R version 3.3.3 (2017-03-06) running on Microsoft Windows 10 Pro 64 bit. It is dependent on the `dplyr`library (version 0.5.0 was used).
+
+## Reference
+
+The following reference refers to the original data set used in this analysis:
+
+Davide Anguita, Alessandro Ghio, Luca Oneto, Xavier Parra and Jorge L. Reyes-Ortiz. A Public Domain Dataset for Human Activity Recognition Using Smartphones. 21th European Symposium on Artificial Neural Networks, Computational Intelligence and Machine Learning, ESANN 2013. Bruges, Belgium 24-26 April 2013.
