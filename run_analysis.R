@@ -1,94 +1,121 @@
-# run_analysis.R transforms the dataset downloaded using downloadData() to meet
-# the coursera data science assignment "Getting and Cleaning Data".
-# 
-# run_analyis.R:
-# 1. Merges the training and the test sets to create one data set.
-# 2. Extracts only the measurements on the mean and standard deviation for each 
-#    measurement.
-# 3. Uses descriptive activity names to name the activities in the data set
-# 4. Appropriately labels the data set with descriptive variable names.
-# 5. From the data set in step 4, creates a second, independent tidy data set 
-#    with the average of each variable for each activity and each subject.
+# run_analysis.R
 #
-# run_analysis.R assumes the project dataset is found in a 'Data/UCI HAR dataset'
-# subdirectory of the project's working directory. This condition can be met by
-# running the seperate downloadData() function (source downloadData.R)
+# Starting from an existing data set, create a tidy data set and output it to
+# a 'tidy_data.txt' data file.
+#
+# The dataset used is derived from the 'Human Activity Recognition Using 
+# Smartphones Data Set'(available at https://tinyurl.com/o69d2jl, representing
+# data collected from the accellerometers from the Samsung Galaxy S smartphone.
+# 
+# see README.md for details.
 
-# ------------------------------------------------------------------------------
+# ----------
+## libraries
+# ----------
+library(dplyr)
 
-# Load libraries
-library(plyr)
 
+## ------------------------------------------------------
+## Download and unzip source dataset if not yet available
+## ------------------------------------------------------
+
+data.source <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+data.file <- "UCI HAR Dataset.zip"
+data.dir <- "UCI HAR Dataset"
+
+
+if (!file.exists(data.file)) {
+    download.file(data.source, data.file, mode="wb")
+}
+if (!file.exists(data.dir)) {
+    unzip(data.file)
+}
+
+## ---------------
+## Read data files
+## ---------------
 
 # set data location variables
-dataDir <- file.path(getwd(), "Data","UCI HAR Dataset")
-testDir <- file.path(dataDir, "test")
-trainDir <- file.path(dataDir, "train")
+test.dir <- file.path(data.dir, "test")
+train.dir <- file.path(data.dir, "train")
 
 ## Load data to R
 
 # read activity labels
-activityLabels <- read.table(file.path(dataDir, "activity_labels.txt"), sep=" ")
-# read features
-features <- read.table(file.path(dataDir, "features.txt"), sep=" ")
+activities <- read.table(file.path(data.dir, "activity_labels.txt"), sep=" ", as.is=TRUE)
+# read features as character vector
+features <- read.table(file.path(data.dir, "features.txt"), sep=" ", as.is=TRUE)
 
-# read test data - subjects
-testSubjects <- read.table(file.path(testDir, "subject_test.txt"))
-# read training data - subjects
-trainSubjects <- read.table(file.path(trainDir, "subject_train.txt"))
+# Extract features representing mean or std
+selected.columns <- grepl("(mean\\(\\))|(std\\(\\))", features$V2)
+selected.columns.numbers <- which(selected.columns)
+selected.columns.names <- features[selected.columns.numbers,2]
 
-# read test labels
-testLabels <- read.table(file.path(testDir, "y_test.txt"))
+# Select columns to read fom data files
+selected.columns.type <- selected.columns
+selected.columns.type[selected.columns] <- "numeric"
+selected.columns.type[!selected.columns] <- "NULL"
 
-# read training labels
-trainLabels <- read.table(file.path(trainDir, "y_train.txt"))
+# read test data
+test.subjects <- read.table(file.path(test.dir, "subject_test.txt"))
+test.labels <- read.table(file.path(test.dir, "y_test.txt"))
+test.data <- read.table(
+    file.path(test.dir, "X_test.txt"), 
+    colClasses = selected.columns.type
+) # only include mean/std data
 
-## For data - only read mean/std values
+# read training data
+train.subjects <- read.table(file.path(train.dir, "subject_train.txt"))
+train.labels <- read.table(file.path(train.dir, "y_train.txt"))
+train.data <- read.table(
+    file.path(train.dir, "X_train.txt"), 
+    colClasses = selected.columns.type
+) # only include mean/std data
 
-# find column numbers with mean/std values
-colNumbers_mean <- which(grepl("mean\\(\\)", features$V2))
-colNumbers_std <- which(grepl("std\\(\\)", features$V2))
+# ----------------------------------
+## Merge test and training data sets
+# ----------------------------------
 
-# get variable names, remove mean()/std()
-colNames_mean <- gsub("-mean\\(\\)-*", "", features[colNumbers_mean,2])
-colNames_std <- gsub("-std\\(\\)-*", "", features[colNumbers_std, 2])
-# these should be the same - if not: throw error!
-if(!identical(colNames_mean, colNames_std)) {stop("Feature order mean/std does not match.")}
+merged.data <- rbind(
+    cbind(test.subjects, test.labels, test.data),
+    cbind(train.subjects, train.labels, train.data)
+)
 
-# Prep col.names to select columns to read
-col_mean <- grepl("mean\\(\\)", features$V2)
-col_std  <- grepl("std\\(\\)", features$V2)
-colSelection_mean <- col_mean
-colSelection_std <- col_std
-colSelection_mean[col_mean] <- "numeric"
-colSelection_mean[!col_mean] <- "NULL"
-colSelection_std[col_std] <- "numeric"
-colSelection_std[!col_std] <- "NULL"
+# --------------------------------------------
+## Do some housekeeping on the merged data set
+# --------------------------------------------
 
-# read test data - dataset
-testData_mean <- read.table(file.path(testDir, "X_test.txt"), colClasses = colSelection_mean)
-testData_std <- read.table(file.path(testDir, "X_test.txt"), colClasses = colSelection_std)
+# Set column names
+colnames(merged.data) <- c("subject", "activity", selected.columns.names)
 
-# read training data - dataset
-trainData_mean <- read.table(file.path(trainDir, "X_train.txt"), colClasses = colSelection_mean)
-trainData_std <- read.table(file.path(trainDir, "X_train.txt"), colClasses = colSelection_std)
-
-## Do some housekeeping on the imported data
-
-# rename subject column names
-colnames(testSubjects) <- "subject"
-colnames(trainSubjects) <- "subject"
-# Subject names are factors
-testSubjects$subject <- factor(testSubjects$subject, ordered=FALSE)
-trainSubjects$subject <- factor(trainSubjects$subject, ordered=FALSE)
-
-# rename labels column names
-colnames(testLabels) <- "activity"
-colnames(trainLabels) <- "activity"
+# subject is a factor
+merged.data$subject <- factor(merged.data$subject, ordered=FALSE)
 # activity is a factor
-testLabels$activity <- factor(testLabels$activity, ordered=FALSE)
-trainLabels$activity <- factor(trainLabels$activity, ordered=FALSE)
+merged.data$activity <- factor(
+    merged.data$activity,
+    levels = activities$V1,
+    labels = activities$V2
+)
 
-# rename labels for activities
-testLabels$activity <- mapvalues(testLabels$activity, activityLabels$V1, as.vector(activityLabels$V2))
-trainLabels$activity <- mapvalues(trainLabels$activity, activityLabels$V1, as.vector(activityLabels$V2))
+# make the column names more descriptive
+column.names <- colnames(merged.data)
+column.names <- gsub("^t", "time", column.names)
+column.names <- gsub("^f", "frequency", column.names)
+column.names <- gsub("Acc", "Accelerometer", column.names)
+column.names <- gsub("Gyro", "Gyroscope", column.names)
+column.names <- gsub("Mag", "Magnitude", column.names)
+# ??BodyBody - let's assume that's a typo
+column.names <- gsub("BodyBody", "Body", column.names)
+colnames(merged.data) <- column.names
+
+# ---------------------------------------------------------------------------
+## Create a dataset with averages of each variable for each activity and each
+## subject
+# ---------------------------------------------------------------------------
+
+merged.data2 <- merged.data %>%
+    group_by(subject, activity) %>%
+    summarize_each(funs(mean))
+
+# write to file
+write.table(merged.data2, "tidy_data.txt", row.names=FALSE, quote=FALSE)
