@@ -19,7 +19,7 @@ Each row in `tidy_data.txt` contains the average value of a set of signal measur
     
 ### Measurements
 
-All measurements are floating point values, normalized and bounded within [-1,1].
+All measurements are floating point values, normalized and bounded within [-1,1]. Prior to normalization, acceleration measurements were made in standard gravity units 'g', and angular velocity measurements were made in radians/second.
 
 #### Time-domain signals
 
