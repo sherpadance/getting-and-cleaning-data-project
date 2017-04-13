@@ -2,7 +2,7 @@
 
 This codebook describes the `tidy_data.txt`data set. The original source data and the transformations performed to  create this dataset are described in the [source data and transformations](#SourceAndTransformations) section. The data structure and variables included in the dataset are described in the [variables](#Variables) section.
 
-## <a href="Variables"></a>Variables
+## <a href="#Variables"></a>Variables
 
 Each row in `tidy_data.txt` contains the average value of a set of signal measurements calculated across all measurements available in the source data set for a given subject performing a given activity. For details on how these measurements were created, please consult the `features_info.txt`file supplied with the source data.
 
@@ -109,7 +109,7 @@ FFT applied to some of the time-domain signals included above:
 * `frequencyBodyGyroscopeJerkMagnitude-mean()`
 * `frequencyBodyGyroscopeJerkMagnitude-std()`
 
-## <a href="SourceAndTransformations"></a>Source data and transformations
+## <a href="#SourceAndTransformations"></a>Source data and transformations
 
 The source data for the project was downloaded [here](https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip).
 
